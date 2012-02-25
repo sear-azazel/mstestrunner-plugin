@@ -9,7 +9,7 @@
 
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>mstestrunner</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <name>Jenkins MSTestRunner plugin</name>
     <url>https://wiki.jenkins-ci.org/display/JENKINS/MSTestRunner+Plugin</url>
@@ -23,8 +23,10 @@
     </developers>
   
     <scm>
-        <connection>scm:git:git@github.com:jenkinsci/mstestrunner-plugin.git</connection>
-        <developerConnection>scm:git:git://github.com/ido-ran/mstestrunner.git</developerConnection>
+        <connection>scm:git:git://github.com/jenkinsci/mstestrunner-plugin.git</connection>
+
+        <developerConnection>scm:git:git@github.com:jenkinsci/mstestrunner-plugin.git</developerConnection>
+
         <url>https://github.com/jenkinsci/mstestrunner-plugin</url>
     </scm>
   
