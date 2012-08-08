@@ -26,6 +26,7 @@ public class MsTestBuilder extends Builder {
     private final String categories;
     private final String resultFile;
     private final String cmdLineArgs;
+    private final boolean noIsolation;
 
     /**
      * When this builder is created in the project configuration step,
@@ -37,13 +38,13 @@ public class MsTestBuilder extends Builder {
      */
     @DataBoundConstructor
     @SuppressWarnings("unused")
-    public MsTestBuilder(String msTestName, String testFiles,
-            String categories, String resultFile, String cmdLineArgs) {
+    public MsTestBuilder(String msTestName, String testFiles, String categories, String resultFile, String cmdLineArgs, boolean noIsolation) {
         this.msTestName = msTestName;
         this.testFiles = testFiles;
         this.categories = categories;
         this.resultFile = resultFile;
         this.cmdLineArgs = cmdLineArgs;
+        this.noIsolation = noIsolation;
     }
 
     @SuppressWarnings("unused")
@@ -64,6 +65,11 @@ public class MsTestBuilder extends Builder {
     @SuppressWarnings("unused")
     public String getResultFile() {
         return resultFile;
+    }
+
+    @SuppressWarnings("unused")
+    public boolean getNoIsolation() {
+        return noIsolation;
     }
 
     @SuppressWarnings("unused")
@@ -138,8 +144,10 @@ public class MsTestBuilder extends Builder {
         // Add result file argument
         args.add("/resultsfile:" + resultFile);
         
-        // Always use noisolation flag
-        args.add("/noisolation");
+        // Checks to use noisolation flag
+        if (noIsolation){
+        	args.add("/noisolation");
+        }
 
         // Add command line arguments
         EnvVars env = build.getEnvironment(listener);
