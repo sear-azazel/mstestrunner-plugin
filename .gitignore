@@ -30,3 +30,5 @@ _ReSharper*/
 
 target/
 work/
+pom.xml.releaseBackup
+release.properties
