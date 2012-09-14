@@ -19,9 +19,6 @@
     <f:entry title="Result File Name" field="resultFile">
         <f:textbox name="MsTestBuilder.resultFile" value="${instance.resultFile}" />
     </f:entry>
-    <f:entry title="Include NoIsolation Attribute" field="noIsolation">
-		<f:checkbox name="MsTestBuilder.noIsolation" checked="${MsTestBuilder.noIsolation}" />
-    </f:entry>
     <f:entry title="Command Line Arguments" field="CmdLineArgs">
         <f:textbox name="MsTestBuilder.cmdLineArgs" value="${instance.cmdLineArgs}"/>
     </f:entry>

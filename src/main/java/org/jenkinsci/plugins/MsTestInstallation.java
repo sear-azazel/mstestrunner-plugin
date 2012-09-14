@@ -27,23 +27,30 @@ public final class MsTestInstallation extends ToolInstallation implements NodeSp
 
     private String defaultArgs;
 
+	private boolean omitNoIsolation;
+
     @DataBoundConstructor
-    public MsTestInstallation(String name, String home, String defaultArgs) {
+    public MsTestInstallation(String name, String home, String defaultArgs, boolean omitNoIsolation) {
         super(name, home, null);
         this.defaultArgs = Util.fixEmpty(defaultArgs);
+		this.omitNoIsolation = omitNoIsolation;
     }
 
     public MsTestInstallation forNode(Node node, TaskListener log) throws IOException, InterruptedException {
-        return new MsTestInstallation(getName(), translateFor(node, log), getDefaultArgs());
+        return new MsTestInstallation(getName(), translateFor(node, log), getDefaultArgs(), getOmitNoIsolation());
     }
 
     public MsTestInstallation forEnvironment(EnvVars environment) {
-        return new MsTestInstallation(getName(), environment.expand(getHome()), getDefaultArgs());
+        return new MsTestInstallation(getName(), environment.expand(getHome()), getDefaultArgs(), getOmitNoIsolation());
     }
 
     public String getDefaultArgs() {
         return this.defaultArgs;
     }
+
+	public boolean getOmitNoIsolation() {
+		return this.omitNoIsolation;
+	}
 
     @Extension
     public static class DescriptorImpl extends ToolDescriptor<MsTestInstallation> {
@@ -71,7 +78,7 @@ public final class MsTestInstallation extends ToolInstallation implements NodeSp
      */
     protected Object readResolve() {
         if (this.pathToMsTest != null) {
-            return new MsTestInstallation(this.getName(), this.pathToMsTest, this.defaultArgs);
+            return new MsTestInstallation(this.getName(), this.pathToMsTest, this.defaultArgs, this.omitNoIsolation);
         }
         return this;
     }
