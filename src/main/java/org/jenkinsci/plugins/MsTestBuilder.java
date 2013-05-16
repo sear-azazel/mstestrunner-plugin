@@ -12,6 +12,9 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
 import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Ido Ran
@@ -81,7 +84,7 @@ public class MsTestBuilder extends Builder {
 
     @Override
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
-        ArgumentListBuilder args = new ArgumentListBuilder();
+        List<String> args = new ArrayList<String>();
 
         // Build MSTest.exe path.
         String execName = "mstest.exe";
@@ -108,7 +111,7 @@ public class MsTestBuilder extends Builder {
             args.add(pathToMsTest);
 
             if (installation.getDefaultArgs() != null) {
-                args.addTokenized(installation.getDefaultArgs());
+                args.addAll(Arrays.asList(Util.tokenize(installation.getDefaultArgs())));
             }
         }
         
@@ -139,7 +142,7 @@ public class MsTestBuilder extends Builder {
         
         // Checks to use noisolation flag
         if (!installation.getOmitNoIsolation()){
-        	args.add("/noisolation");
+            args.add("/noisolation");
         }
 
         // Add command line arguments
@@ -148,11 +151,8 @@ public class MsTestBuilder extends Builder {
         normalizedArgs = Util.replaceMacro(normalizedArgs, env);
         normalizedArgs = Util.replaceMacro(normalizedArgs, build.getBuildVariables());
         if (normalizedArgs.trim().length() > 0) {
-            args.addTokenized(normalizedArgs);
+            args.addAll(Arrays.asList(Util.tokenize(normalizedArgs)));
         }
-
-        // TODO: How and if to add build variables?
-        //args.addKeyValuePairs("/P:", build.getBuildVariables());
 
         if (categories != null && categories.trim().length() > 0) {
             args.add("/category:\"" + categories.trim() + "\"");
@@ -165,7 +165,7 @@ public class MsTestBuilder extends Builder {
         }
 
         // Add test containers to command line
-        StringTokenizer testFilesToknzr = new StringTokenizer(testFiles, " \t\r\n");
+        StringTokenizer testFilesToknzr = new StringTokenizer(testFiles, "\r\n");
         while (testFilesToknzr.hasMoreTokens()) {
             String testFile = testFilesToknzr.nextToken();
             testFile = Util.replaceMacro(testFile, env);
@@ -176,12 +176,6 @@ public class MsTestBuilder extends Builder {
             }
         }
 
-        if (!launcher.isUnix()) {
-            args.prepend("cmd.exe", "/C");
-            args.add("&&", "exit", "%%ERRORLEVEL%%");
-        }
-
-        listener.getLogger().println("Executing MSTest: " + args.toStringWithQuote());
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
             return r == 0;
