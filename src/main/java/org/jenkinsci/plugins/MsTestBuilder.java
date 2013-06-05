@@ -177,7 +177,7 @@ public class MsTestBuilder extends Builder {
         }
 
         try {
-            int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getModuleRoot()).join();
+            int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
             return r == 0;
         } catch (IOException e) {
             Util.displayIOException(e, listener);
