@@ -29,6 +29,7 @@ public class MsTestBuilder extends Builder {
     private final String categories;
     private final String resultFile;
     private final String cmdLineArgs;
+    private final boolean continueOnFail;
 
     /**
      * When this builder is created in the project configuration step,
@@ -40,12 +41,13 @@ public class MsTestBuilder extends Builder {
      */
     @DataBoundConstructor
     @SuppressWarnings("unused")
-    public MsTestBuilder(String msTestName, String testFiles, String categories, String resultFile, String cmdLineArgs) {
+    public MsTestBuilder(String msTestName, String testFiles, String categories, String resultFile, String cmdLineArgs, boolean continueOnFail) {
         this.msTestName = msTestName;
         this.testFiles = testFiles;
         this.categories = categories;
         this.resultFile = resultFile;
         this.cmdLineArgs = cmdLineArgs;
+        this.continueOnFail = continueOnFail;
     }
 
     @SuppressWarnings("unused")
@@ -71,6 +73,11 @@ public class MsTestBuilder extends Builder {
     @SuppressWarnings("unused")
     public String getMsTestName() {
         return msTestName;
+    }
+    
+    @SuppressWarnings("unused")
+    public boolean getcontinueOnFail() {
+        return continueOnFail;
     }
 
     public MsTestInstallation getMsTest() {
@@ -178,7 +185,10 @@ public class MsTestBuilder extends Builder {
 
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
-            return r == 0;
+            
+            // If continueOnFail is set we always report success.
+            // If not we report success if MSTest return 0 and exit value.
+            return continueOnFail || (r == 0);
         } catch (IOException e) {
             Util.displayIOException(e, listener);
             e.printStackTrace(listener.fatalError("MSTest command execution failed"));
