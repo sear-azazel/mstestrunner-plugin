@@ -1,20 +1,26 @@
 package org.jenkinsci.plugins;
 
-import hudson.*;
-import hudson.model.AbstractBuild;
+import hudson.CopyOnWrite;
+import hudson.EnvVars;
+import hudson.Extension;
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.Util;
 import hudson.model.BuildListener;
+import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
-import hudson.util.ArgumentListBuilder;
-import org.kohsuke.stapler.DataBoundConstructor;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.StringTokenizer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
+
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * @author Ido Ran
@@ -93,6 +99,8 @@ public class MsTestBuilder extends Builder {
     public boolean perform(AbstractBuild<?, ?> build, Launcher launcher, BuildListener listener) throws InterruptedException, IOException {
         List<String> args = new ArrayList<String>();
 
+        FilePath workspace = build.getWorkspace();
+
         // Build MSTest.exe path.
         String execName = "mstest.exe";
         MsTestInstallation installation = getMsTest();
@@ -128,7 +136,7 @@ public class MsTestBuilder extends Builder {
         }
         
         // Delete old result file
-        FilePath resultFilePath = build.getWorkspace().child(resultFile);
+        FilePath resultFilePath = workspace.child(resultFile);
         if (!resultFilePath.exists()) {
             listener.getLogger().println("Result file was not found so no action has been taken. " + resultFilePath.toURI());
         } else {
@@ -148,7 +156,7 @@ public class MsTestBuilder extends Builder {
         args.add("/resultsfile:" + resultFile);
         
         // Checks to use noisolation flag
-        if (!installation.getOmitNoIsolation()){
+        if (installation != null && !installation.getOmitNoIsolation()){
             args.add("/noisolation");
         }
 
@@ -157,16 +165,23 @@ public class MsTestBuilder extends Builder {
         String normalizedArgs = cmdLineArgs.replaceAll("[\t\r\n]+", " ");
         normalizedArgs = Util.replaceMacro(normalizedArgs, env);
         normalizedArgs = Util.replaceMacro(normalizedArgs, build.getBuildVariables());
-        if (normalizedArgs.trim().length() > 0) {
+        normalizedArgs = Util.fixEmptyAndTrim(normalizedArgs);
+        if (normalizedArgs != null) {
             args.addAll(Arrays.asList(Util.tokenize(normalizedArgs)));
         }
 
-        if (categories != null && categories.trim().length() > 0) {
-            args.add("/category:\"" + categories.trim() + "\"");
+        // check categories
+        String categories = Util.fixEmptyAndTrim(this.categories);
+        if (categories != null) {
+        	// If filter consists of a single category such as /category:group1, do not have to enclose the filter in quotation marks.
+        	// However, if filter references more than one category such as /category:"group1&group2" then the filter has to be enclosed in quotation marks.
+        	boolean quotationMarks = categories.contains("&") || categories.contains("!") || categories.contains("|");
+       		args.add("/category:" + (quotationMarks ? "\"" : "") + categories + (quotationMarks ? "\"" : ""));
         }
 
+        String testFiles = Util.fixEmptyAndTrim(this.testFiles);
         // if no test files are specified fail the build.
-        if (testFiles == null || testFiles.trim().length() == 0) {
+        if (testFiles == null) {
             listener.fatalError("No test files are specified");
             return false;
         }
@@ -177,14 +192,18 @@ public class MsTestBuilder extends Builder {
             String testFile = testFilesToknzr.nextToken();
             testFile = Util.replaceMacro(testFile, env);
             testFile = Util.replaceMacro(testFile, build.getBuildVariables());
+            testFile = Util.fixEmptyAndTrim(testFile);
 
-            if (testFile.length() > 0) {
-                args.add("/testcontainer:" + testFile);
+            if (testFile != null) {
+				for (FilePath testContainerFile : workspace.list(testFile)) {
+					// TODO make path relative to workspace to reduce length of command line
+            		args.add("/testcontainer:" + testContainerFile);
+				}
             }
         }
 
         try {
-            int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(build.getWorkspace()).join();
+            int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(workspace).join();
             
             // If continueOnFail is set we always report success.
             // If not we report success if MSTest return 0 and exit value.
