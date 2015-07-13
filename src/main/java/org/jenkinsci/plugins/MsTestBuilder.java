@@ -17,7 +17,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -187,6 +189,7 @@ public class MsTestBuilder extends Builder {
         }
 
         // Add test containers to command line
+        Set<String> testContainers = new LinkedHashSet<String>(7);
         StringTokenizer testFilesToknzr = new StringTokenizer(testFiles, "\r\n");
         while (testFilesToknzr.hasMoreTokens()) {
             String testFile = testFilesToknzr.nextToken();
@@ -195,11 +198,27 @@ public class MsTestBuilder extends Builder {
             testFile = Util.fixEmptyAndTrim(testFile);
 
             if (testFile != null) {
-				for (FilePath testContainerFile : workspace.list(testFile)) {
-					// TODO make path relative to workspace to reduce length of command line
-            		args.add("/testcontainer:" + testContainerFile);
-				}
+            	File tcFile = new File(testFile);
+				if (tcFile.isAbsolute()) {
+					if (tcFile.isFile() && tcFile.exists()) {
+						testContainers.add(testFile);
+					}
+            	} else {
+					for (FilePath tcFilePath : workspace.list(testFile)) {
+						// TODO make path relative to workspace to reduce length of command line (see windows max size)
+	            		testContainers.add(tcFilePath.getRemote());
+					}
+            	}
             }
+        }
+        // nothing of include rule has match files in workspace folder
+        if (testContainers.isEmpty()) {
+        	listener.fatalError("No test files was found");
+        	return false;
+        }
+
+        for (String testContainer : testContainers) {
+        	args.add("/testcontainer:" + testContainer);
         }
 
         try {
