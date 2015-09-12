@@ -172,7 +172,8 @@ public class MsTestBuilder extends Builder {
         }
 
         // Add test containers to command line
-        StringTokenizer testFilesToknzr = new StringTokenizer(testFiles, "\r\n");
+        String macroReplacedTestFiles = Util.replaceMacro(testFiles, env);// Required to handle newlines properly
+        StringTokenizer testFilesToknzr = new StringTokenizer(macroReplacedTestFiles, "\r\n");
         while (testFilesToknzr.hasMoreTokens()) {
             String testFile = testFilesToknzr.nextToken();
             testFile = Util.replaceMacro(testFile, env);
