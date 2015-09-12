@@ -10,6 +10,9 @@ import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
+import hudson.model.AbstractBuild;
+import hudson.model.AbstractProject;
+import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
 
@@ -82,7 +85,7 @@ public class MsTestBuilder extends Builder {
     public String getMsTestName() {
         return msTestName;
     }
-    
+
     @SuppressWarnings("unused")
     public boolean getcontinueOnFail() {
         return continueOnFail;
@@ -131,12 +134,12 @@ public class MsTestBuilder extends Builder {
                 args.addAll(Arrays.asList(Util.tokenize(installation.getDefaultArgs())));
             }
         }
-        
+
         if (resultFile == null || resultFile.trim().length() == 0) {
             listener.fatalError("Result file name was not specified");
             return false;
         }
-        
+
         // Delete old result file
         FilePath resultFilePath = workspace.child(resultFile);
         if (!resultFilePath.exists()) {
@@ -153,10 +156,10 @@ public class MsTestBuilder extends Builder {
                 return false;
             }
         }
-        
+
         // Add result file argument
         args.add("/resultsfile:" + resultFile);
-        
+
         // Checks to use noisolation flag
         if (installation != null && !installation.getOmitNoIsolation()){
             args.add("/noisolation");
@@ -225,7 +228,7 @@ public class MsTestBuilder extends Builder {
 
         try {
             int r = launcher.launch().cmds(args).envs(env).stdout(listener).pwd(workspace).join();
-            
+
             // If continueOnFail is set we always report success.
             // If not we report success if MSTest return 0 and exit value.
             return continueOnFail || (r == 0);
@@ -246,7 +249,7 @@ public class MsTestBuilder extends Builder {
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
 
-    public static final class DescriptorImpl extends Descriptor<Builder> {
+    public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
         @CopyOnWrite
         private volatile MsTestInstallation[] installations = new MsTestInstallation[0];
@@ -258,6 +261,11 @@ public class MsTestBuilder extends Builder {
 
         public String getDisplayName() {
             return "Run unit tests with MSTest";
+        }
+
+        @Override
+        public boolean isApplicable(@SuppressWarnings("rawtypes") final Class<? extends AbstractProject> jobType) {
+          return true;
         }
 
         public MsTestInstallation[] getInstallations() {
