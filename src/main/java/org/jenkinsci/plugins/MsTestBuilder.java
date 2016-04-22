@@ -209,10 +209,16 @@ public class MsTestBuilder extends Builder {
 						testContainers.add(testFile);
 					}
             	} else {
-					for (FilePath tcFilePath : workspace.list(testFile)) {
-						// TODO make path relative to workspace to reduce length of command line (see windows max size)
-	            		testContainers.add(tcFilePath.getRemote());
-					}
+                    FilePath testFilePath = workspace.child(testFile);
+                    // JENKINS-30457. To support dot-segments and maintain backwards compatibility since it was supported up till 1.1.2
+                    if (testFilePath.exists()) {
+                        testContainers.add(testFilePath.getRemote());
+                    } else {
+                        for (FilePath tcFilePath : workspace.list(testFile)) {
+                            // TODO make path relative to workspace to reduce length of command line (see windows max size)
+                            testContainers.add(tcFilePath.getRemote());
+                        }
+                    }
             	}
             }
         }
