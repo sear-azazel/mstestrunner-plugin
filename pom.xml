@@ -4,10 +4,9 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.447</version><!-- which version of Jenkins is this plugin built against? -->
+        <version>2.7</version><!-- which version of Jenkins is this plugin built against? -->
     </parent>
 
-    <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>mstestrunner</artifactId>
     <version>1.2.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
@@ -21,6 +20,11 @@
             <email>ido.ran@gmail.com</email>
         </developer>
     </developers>
+  
+    <properties>
+      <jenkins.version>1.580.1</jenkins.version>
+      <java.level>6</java.level>
+    </properties>
   
     <scm>
         <connection>scm:git:git://github.com/jenkinsci/mstestrunner-plugin.git</connection>
