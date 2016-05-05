@@ -7,10 +7,10 @@ import hudson.FilePath;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.BuildListener;
-import hudson.model.AbstractBuild;
 import hudson.model.Computer;
-import hudson.model.Descriptor;
 import hudson.model.AbstractBuild;
+import hudson.model.Descriptor;
+import hudson.model.Node;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
@@ -114,7 +114,12 @@ public class MsTestBuilder extends Builder {
             args.add(execName);
         } else {
             EnvVars env = build.getEnvironment(listener);
-            installation = installation.forNode(Computer.currentComputer().getNode(), listener);
+            Node node = Computer.currentComputer().getNode();
+            if (node == null) {
+                listener.fatalError("Configuration has changed and node has been removed.");
+                return false;
+            }
+            installation = installation.forNode(node, listener);
             installation = installation.forEnvironment(env);
             String pathToMsTest = installation.getHome();
             FilePath exec = new FilePath(launcher.getChannel(), pathToMsTest);
@@ -269,7 +274,7 @@ public class MsTestBuilder extends Builder {
         }
 
         public MsTestInstallation[] getInstallations() {
-            return installations;
+            return Arrays.copyOf(installations, installations.length);
         }
 
         public void setInstallations(MsTestInstallation... antInstallations) {

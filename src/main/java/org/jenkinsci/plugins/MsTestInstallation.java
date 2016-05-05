@@ -19,6 +19,8 @@ import java.io.IOException;
  */
 public final class MsTestInstallation extends ToolInstallation implements NodeSpecific<MsTestInstallation>, EnvironmentSpecific<MsTestInstallation> {
 
+    private static final long serialVersionUID = -2469009525603494417L;
+
     @SuppressWarnings("unused")
     /**
      * Backward compatibility
