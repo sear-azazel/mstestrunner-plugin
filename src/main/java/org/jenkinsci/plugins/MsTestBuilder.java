@@ -15,6 +15,7 @@ import hudson.model.AbstractProject;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.tools.ToolInstallation;
+import hudson.util.FormValidation;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,7 +26,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringTokenizer;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 
 /**
  * @author Ido Ran
@@ -293,6 +296,13 @@ public class MsTestBuilder extends Builder {
          */
         public MsTestInstallation.DescriptorImpl getToolDescriptor() {
             return ToolInstallation.all().get(MsTestInstallation.DescriptorImpl.class);
+        }
+        
+        public FormValidation doCheckResultFile(@QueryParameter String value) {
+            if (StringUtils.isBlank(value)) {
+                return FormValidation.warning("Result File Name must be provided.");
+            }
+            return FormValidation.ok();
         }
     }
 }
