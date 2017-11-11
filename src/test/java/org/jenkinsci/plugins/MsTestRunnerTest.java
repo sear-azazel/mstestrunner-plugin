@@ -119,7 +119,7 @@ public class MsTestRunnerTest {
     private FreeStyleProject createFreeStyleProjectWithMsTest(String categories, String cmdLineArgs, boolean ignoreFailingTests) throws URISyntaxException, IOException {
         String msTestFiles = getClass().getResource("mstest/testfile").toURI().getPath();
         FreeStyleProject p = r.jenkins.createProject(FreeStyleProject.class, "MSTestProject");
-        p.getBuildersList().add(new MsTestBuilder(MS_TEST_INSTALLATION, msTestFiles, categories, "resultFile", cmdLineArgs, ignoreFailingTests));
+        p.getBuildersList().add(new MsTestBuilder(MS_TEST_INSTALLATION, msTestFiles, categories, "resultFile", cmdLineArgs, ignoreFailingTests, false));
         return p;
     }
     
